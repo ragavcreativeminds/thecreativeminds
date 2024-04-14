@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import {
   useAuthState,
   useSignInWithApple,
+  useSignInWithFacebook,
   useSignInWithGoogle,
 } from "react-firebase-hooks/auth";
 import { auth, firestore } from "../../../firebase/ClientApp";
@@ -15,8 +16,12 @@ const OAuthButtons: React.FC<OAuthButtonsProps> = () => {
   const [signInWithGoogle, userCred, loading, error] =
     useSignInWithGoogle(auth);
 
-  const [signInWithApple, userCredApple, loading_, error_] =
-    useSignInWithApple(auth);
+  const [
+    signInWithFacebook,
+    userCredFacebook,
+    facebook_loading,
+    facebook_error,
+  ] = useSignInWithFacebook(auth);
 
   const creatUserDocument = async (user: User) => {
     const userDocRef = doc(firestore, "users", user.uid);
@@ -28,6 +33,12 @@ const OAuthButtons: React.FC<OAuthButtonsProps> = () => {
       creatUserDocument(userCred.user);
     }
   }, [userCred]);
+
+  useEffect(() => {
+    if (userCredFacebook) {
+      creatUserDocument(userCredFacebook.user);
+    }
+  }, [userCredFacebook]);
 
   return (
     <>
@@ -44,11 +55,11 @@ const OAuthButtons: React.FC<OAuthButtonsProps> = () => {
         <Button
           variant={"oauth"}
           mb={2}
-          isLoading={loading_}
-          onClick={() => signInWithApple()}
+          isLoading={facebook_loading}
+          onClick={() => signInWithFacebook()}
         >
           <Image src="/images/applelogo.png" height={"40px"} mr={4}></Image>
-          Continue with Apple
+          Continue with Facebook
         </Button>
         {error && (
           <Text textAlign="center" fontSize="10pt" color="red" mt={2}>

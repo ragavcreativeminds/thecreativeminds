@@ -100,6 +100,8 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({
             isModerator: true,
           }
         );
+
+        router.reload()
       });
     } catch (error: any) {
       console.log("handleCreateCommunity", error);
