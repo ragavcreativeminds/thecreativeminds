@@ -58,7 +58,7 @@ const OAuthButtons: React.FC<OAuthButtonsProps> = () => {
           isLoading={facebook_loading}
           onClick={() => signInWithFacebook()}
         >
-          <Image src="/images/applelogo.png" height={"40px"} mr={4}></Image>
+          <Image src="/images/facebook_logo.png" height={"25px"} mr={4}></Image>
           Continue with Facebook
         </Button>
         {error && (
