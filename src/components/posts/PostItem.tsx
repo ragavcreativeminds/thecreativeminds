@@ -1,28 +1,59 @@
 import { Post } from "@/src/atoms/postAtom";
-import { Box, Flex, Text } from "@chakra-ui/react";
-import { NextRouter } from "next/router";
-import React from "react";
-
+import {
+  Alert,
+  AlertIcon,
+  Flex,
+  Heading,
+  Icon,
+  Image,
+  Link,
+  ListItem,
+  OrderedList,
+  Skeleton,
+  Spinner,
+  Stack,
+  Text,
+  UnorderedList,
+} from "@chakra-ui/react";
+import moment from "moment";
+import React, { useState } from "react";
+import { AiOutlineDelete } from "react-icons/ai";
+import { BsChat } from "react-icons/bs";
+import {
+  IoArrowDownCircleOutline,
+  IoArrowDownCircleSharp,
+  IoArrowRedoOutline,
+  IoArrowUpCircleOutline,
+  IoArrowUpCircleSharp,
+  IoBookmarkOutline,
+} from "react-icons/io5";
+import DOMPurify from "dompurify";
+import TextEditor from "./PostForm/TextEditor";
+import NextLink from "next/link";
 type PostItemProps = {
   post: Post;
-  //   onVote: (
-  //     event: React.MouseEvent<SVGElement, MouseEvent>,
-  //     post: Post,
-  //     vote: number,
-  //     communityId: string,
-  //     postIdx?: number
-  //   ) => void;
-  //   onDeletePost: (post: Post) => Promise<boolean>;
-  //   userIsCreator: boolean;
-  //   onSelectPost?: (value: Post, postIdx: number) => void;
-  //   router?: NextRouter;
-  //   postIdx?: number;
-  //   userVoteValue?: number;
-  //   homePage?: boolean;
+  onVote: (
+    post: Post,
+    vote: number,
+    communityId: string,
+    postIdx?: number
+  ) => void;
+  onDeletePost: (post: Post) => Promise<boolean>;
+  userIsCreator: boolean;
+  onSelectPost?: () => void;
+  // router?: NextRouter;
+  // postIdx?: number;
+  userVoteValue?: number;
+  // homePage?: boolean;
 };
 
 const PostItem: React.FC<PostItemProps> = ({
   post,
+  userIsCreator,
+  userVoteValue,
+  onVote,
+  onDeletePost,
+  onSelectPost,
   // postIdx,
   // onVote,
   // onSelectPost,
@@ -32,21 +63,211 @@ const PostItem: React.FC<PostItemProps> = ({
   // userIsCreator,
   // homePage,
 }) => {
+  const [loadingImage, setLoadingImage] = useState(true);
+  const [loadingDelete, setLoadingDelete] = useState(false);
+  const [error, setError] = useState(false);
+
+  const handleDelete = async (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
+    event.stopPropagation();
+    setLoadingDelete(true);
+    try {
+      const success = await onDeletePost(post);
+      if (!success) throw new Error("Failed to delete post");
+
+      console.log("Post successfully deleted");
+    } catch (error: any) {
+      console.log("Error deleting post", error.message);
+      setError(error.message);
+      setLoadingDelete(false);
+    }
+  };
+
   return (
     <>
+      {error && (
+        <Alert status="error">
+          <AlertIcon />
+          <Text mr={2}>{error}</Text>
+        </Alert>
+      )}
       <Flex
         border="1px solid"
         bg="white"
-        pr={4}
         borderColor={"gray.300"}
         borderRadius={"4px 4px 0px 0px"}
         cursor={"pointer"}
         _hover={"gray.500"}
+        onClick={onSelectPost}
       >
-        <Box>
-          <Text m={4}>Title: {post?.title}</Text>
-          <Text p={4}>Description: {post?.body}</Text>
-        </Box>
+        <Flex
+          direction="column"
+          align="center"
+          bg={"gray.100"}
+          p={2}
+          width="40px"
+          borderRadius={"3px 0px 0px 3px"}
+        >
+          <Icon
+            as={
+              userVoteValue === 1
+                ? IoArrowUpCircleSharp
+                : IoArrowUpCircleOutline
+            }
+            color={userVoteValue === 1 ? "brand.100" : "gray.400"}
+            fontSize={22}
+            cursor="pointer"
+            onClick={(event) => onVote(post, 1, post.communityId)}
+          />
+          <Text fontSize="9pt" fontWeight={600}>
+            {post.voteStatus}
+          </Text>
+          <Icon
+            as={
+              userVoteValue === -1
+                ? IoArrowDownCircleSharp
+                : IoArrowDownCircleOutline
+            }
+            color={userVoteValue === -1 ? "#4379FF" : "gray.400"}
+            fontSize={22}
+            cursor="pointer"
+            onClick={(event) => onVote(post, -1, post.communityId)}
+          />
+        </Flex>
+        <Flex direction="column" width="100%">
+          <Stack spacing={1} p="10px 10px">
+            {post.createdAt && (
+              <Stack
+                direction="row"
+                spacing={0.6}
+                align="center"
+                fontSize="9pt"
+              >
+                <Text color="gray.500">
+                  Posted by u/{post.userDisplayText}{" "}
+                  {moment(new Date(post.createdAt.seconds * 1000)).fromNow()}
+                </Text>
+              </Stack>
+            )}
+
+            {DOMPurify.sanitize(post.title, {
+              USE_PROFILES: { html: true },
+            }) && (
+              <Heading as="h4" size="md" my={2}>
+                {post.title}
+              </Heading>
+            )}
+
+            {DOMPurify.sanitize(post.body, {
+              USE_PROFILES: { html: true },
+            }) && (
+              // <Text
+              //   dangerouslySetInnerHTML={{ __html: post.body }}
+              //   fontSize="10pt"
+              // ></Text>
+              <TextEditor
+                textInput={post.body}
+                onChange={() => {}}
+                readonly={true}
+                theme="bubble"
+                height=""
+                placeHolder="Discription"
+              />
+            )}
+            {post.imageURL && (
+              <Flex justify="center" align="center" p={2}>
+                {loadingImage && (
+                  <Skeleton height="200px" width="100%" borderRadius={4} />
+                )}
+                <Image
+                  // width="80%"
+                  // maxWidth="500px"
+                  maxHeight="460px"
+                  src={post.imageURL}
+                  display={loadingImage ? "none" : "unset"}
+                  onLoad={() => setLoadingImage(false)}
+                  alt="Post Image"
+                />
+              </Flex>
+            )}
+            <Flex direction={"column"} width={{base:'300px', md:'500px'}} my={2} >
+              <Heading as="h6" size="sm" my={2}>
+                Links
+              </Heading>
+              {post.links && (
+                <UnorderedList  maxWidth={700}>
+                  {post.links &&
+                    post.links.map((link, index) => (
+                      <ListItem key={index}>
+                        <NextLink href={link} passHref>
+                          <Link
+                            fontSize={12}
+                            color={"blue.500"}
+                            fontWeight={"bold"}
+                            isExternal
+                          >
+                            {link}
+                          </Link>
+                        </NextLink>
+                      </ListItem>
+                    ))}
+                </UnorderedList>
+              )}
+            </Flex>
+          </Stack>
+          <Flex ml={1} mb={0.5} color="gray.500" fontWeight={600}>
+            <Flex
+              align="center"
+              p="8px 10px"
+              borderRadius={4}
+              _hover={{ bg: "gray.200" }}
+              cursor="pointer"
+            >
+              <Icon as={BsChat} mr={2} />
+              <Text fontSize="9pt">{post.numberOfComments}</Text>
+            </Flex>
+            <Flex
+              align="center"
+              p="8px 10px"
+              borderRadius={4}
+              _hover={{ bg: "gray.200" }}
+              cursor="pointer"
+            >
+              <Icon as={IoArrowRedoOutline} mr={2} />
+              <Text fontSize="9pt">Share</Text>
+            </Flex>
+            <Flex
+              align="center"
+              p="8px 10px"
+              borderRadius={4}
+              _hover={{ bg: "gray.200" }}
+              cursor="pointer"
+            >
+              <Icon as={IoBookmarkOutline} mr={2} />
+              <Text fontSize="9pt">Save</Text>
+            </Flex>
+            {userIsCreator && (
+              <Flex
+                align="center"
+                p="8px 10px"
+                borderRadius={4}
+                _hover={{ bg: "gray.200" }}
+                cursor="pointer"
+                onClick={handleDelete}
+              >
+                {loadingDelete ? (
+                  <Spinner size="sm" />
+                ) : (
+                  <>
+                    <Icon as={AiOutlineDelete} mr={2} />
+                    <Text fontSize="9pt">Delete</Text>
+                  </>
+                )}
+              </Flex>
+            )}
+          </Flex>
+        </Flex>
       </Flex>
     </>
   );

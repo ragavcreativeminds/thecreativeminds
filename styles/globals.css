@@ -10,6 +10,58 @@ a {
   text-decoration: none;
 }
 
+.text-editor {
+  padding: 10px;
+
+  padding-left: 15px;
+
+  font-size: "10pt";
+
+  height: 00px;
+}
+
+.text-editor:focus {
+  outline-color: #3182ce;
+  border: "1px solid";
+
+  background-color: white;
+}
+
+.ql-toolbar.ql-snow {
+  border: 1px solid #E2E8F0 !important;
+  background-color: RGBA(0, 0, 0, 0.06);
+}
+
+.ql-container.ql-snow {
+  border: 1px solid #edf2f7 !important;
+}
+
+.ql-toolbar.ql-bubble {
+  border: 1px solid #E2E8F0 !important;
+  background-color: RGBA(0, 0, 0, 0.06);
+}
+
+.ql-container.ql-bubble {
+  border: 1px solid #edf2f7 !important;
+}
+
+.ql-editor {
+  padding: 8px 16px !important;
+}
+
+.ql-editor:focus {
+  border: 2px solid #3182CE !important;
+  padding: 8px 16px;
+}
+
+.ql-editor input::placeholder {
+  color: red !important;
+}
+
 * {
+  -ms-overflow-style: none;
   box-sizing: border-box;
+}
+::-webkit-scrollbar {
+  display: none;
 }

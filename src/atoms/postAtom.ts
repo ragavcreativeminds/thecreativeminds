@@ -9,6 +9,7 @@ export type Post = {
   creatorId: string;
   title: string;
   body: string;
+  links:[];
   numberOfComments: number;
   voteStatus: number;
   currentUserVoteStatus?: {
@@ -17,7 +18,7 @@ export type Post = {
   };
   imageURL?: string;
   postIdx?: number;
-  createdAt?: Timestamp;
+  createdAt: Timestamp;
   editedAt?: Timestamp;
 };
 
